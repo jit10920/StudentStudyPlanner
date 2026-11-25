@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Course Management</h1>
+<div class="card mb-4"><div class="card-body">
+<h5>Add a Course</h5>
+<form method="post" class="row g-2">
+  <div class="col-md-4"><input class="form-control" name="course_name" placeholder="Course name" required></div>
+  <div class="col-md-3"><input class="form-control" name="course_code" placeholder="Course code" required></div>
+  <div class="col-md-3"><input class="form-control" name="semester" placeholder="Semester (optional)"></div>
+  <div class="col-md-2"><button class="btn btn-primary w-100">Add</button></div>
+</form>
+</div></div>
+<h4>Saved Courses</h4>
+{% if courses %}
+<table class="table table-striped align-middle"><thead><tr><th>Name</th><th>Code</th><th>Semester</th><th></th></tr></thead><tbody>
+{% for course in courses %}
+<tr><td>{{ course.course_name }}</td><td>{{ course.course_code }}</td><td>{{ course.semester }}</td>
+<td><form method="post" action="/courses/delete/{{ course.id }}" onsubmit="return confirm('Delete this course?')"><button class="btn btn-sm btn-outline-danger">Delete</button></form></td></tr>
+{% endfor %}
+</tbody></table>
+{% else %}<p class="text-muted">No courses added yet.</p>{% endif %}
+{% endblock %}

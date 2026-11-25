@@ -1,0 +1,6 @@
+venv/
+__pycache__/
+*.pyc
+study_planner.db
+.pytest_cache/
+.coverage

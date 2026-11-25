@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-3">Dashboard</h1>
+<p class="text-secondary">A simple place to organize courses and study tasks.</p>
+<div class="row g-3 mb-4">
+  {% for label, value in [('Total Tasks', stats.total), ('Pending', stats.pending), ('Completed', stats.completed), ('Overdue', stats.overdue)] %}
+  <div class="col-6 col-md-3"><div class="card stat-card h-100"><div class="card-body">
+    <div class="text-secondary">{{ label }}</div><div class="display-6 fw-bold">{{ value }}</div>
+  </div></div></div>
+  {% endfor %}
+</div>
+<div class="row g-3">
+  <div class="col-md-6"><div class="card"><div class="card-body">
+    <h4>Upcoming Tasks</h4>
+    {% if tasks %}
+      <ul class="list-group list-group-flush">
+      {% for task in tasks %}
+        <li class="list-group-item">
+          <strong>{{ task.title }}</strong><br>
+          <small>{{ task.course_name or 'No course' }} · Due: {{ task.deadline or 'Not set' }} · {{ task.priority }}</small>
+        </li>
+      {% endfor %}
+      </ul>
+    {% else %}<p class="text-muted">No pending tasks yet. Add tasks to get started.</p>{% endif %}
+    <a class="btn btn-primary mt-3" href="/tasks">Manage Tasks</a>
+  </div></div></div>
+  <div class="col-md-6"><div class="card"><div class="card-body">
+    <h4>Your Courses</h4>
+    {% if courses %}
+      <ul class="list-group list-group-flush">
+      {% for course in courses %}
+        <li class="list-group-item">{{ course.course_name }} <span class="text-muted">({{ course.course_code }})</span></li>
+      {% endfor %}
+      </ul>
+    {% else %}<p class="text-muted">No courses yet.</p>{% endif %}
+    <a class="btn btn-outline-primary mt-3" href="/courses">Manage Courses</a>
+  </div></div></div>
+</div>
+{% endblock %}
