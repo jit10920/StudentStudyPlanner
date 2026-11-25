@@ -41,9 +41,18 @@ def courses():
 
         return redirect(url_for("courses"))
 
+    search_query = request.args.get("q", "").strip()
+
+    course_list = (
+        CourseService.search_courses(db, search_query)
+        if search_query
+        else CourseService.list_courses(db)
+    )
+
     return render_template(
         "courses.html",
-        courses=CourseService.list_courses(db)
+        courses=course_list,
+        search_query=search_query
     )
 
 
