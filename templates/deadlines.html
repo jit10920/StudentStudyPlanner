@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-3">Deadline Management</h1>
+{% for key, label, badge in [('overdue','Overdue','danger'),('today','Due today','warning'),('this_week','Next 7 days','primary'),('later','Later','secondary'),('no_deadline','No deadline','light')] %}
+<div class="card mb-3" id="group-{{ key }}"><div class="card-body">
+  <h5><span class="badge text-bg-{{ badge }}">{{ label }}</span> <small class="text-muted">{{ groups[key]|length }}</small></h5>
+  {% if groups[key] %}
+  <ul class="list-group list-group-flush">
+    {% for task in groups[key] %}
+    <li class="list-group-item">
+      <strong>{{ task.title }}</strong>
+      <small class="text-muted">· {{ task.course_name or 'No course' }} · {{ task.deadline or 'Not set' }} · {{ task.priority }}</small>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}<p class="text-muted mb-0">Nothing here.</p>{% endif %}
+</div></div>
+{% endfor %}
+{% endblock %}

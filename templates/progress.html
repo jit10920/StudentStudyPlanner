@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-3">Progress Tracking</h1>
+<p class="text-secondary">Overall completion: <strong id="overall-percent">{{ overall_percent }}%</strong></p>
+{% if courses %}
+<div class="card"><div class="card-body">
+  {% for course in courses %}
+  <div class="mb-3 course-progress">
+    <div class="d-flex justify-content-between">
+      <span>{{ course.course_name }} <span class="text-muted">({{ course.course_code }})</span></span>
+      <span>{{ course.completed }}/{{ course.total }} tasks · {{ course.percent }}%</span>
+    </div>
+    <div class="progress" role="progressbar" aria-valuenow="{{ course.percent }}" aria-valuemin="0" aria-valuemax="100">
+      <div class="progress-bar" style="width: {{ course.percent }}%"></div>
+    </div>
+  </div>
+  {% endfor %}
+</div></div>
+{% else %}<p class="text-muted">Add a course to start tracking progress.</p>{% endif %}
+{% endblock %}
