@@ -44,3 +44,4 @@ Branch names: `feature/deadline-progress`, `feature/observer-activity-log`, `fea
 
 ## Running the tests
 Run the unit tests with coverage: `pytest --ignore=tests/e2e --cov`
+Run the browser tests (needs Chrome): `pytest tests/e2e`
