@@ -8,6 +8,7 @@ selenium = pytest.importorskip("selenium")
 from selenium import webdriver  # noqa: E402
 from selenium.common.exceptions import WebDriverException  # noqa: E402
 from selenium.webdriver.common.by import By  # noqa: E402
+from selenium.webdriver.support.ui import WebDriverWait  # noqa: E402
 from werkzeug.serving import make_server  # noqa: E402
 
 import database  # noqa: E402
@@ -38,18 +39,26 @@ def browser():
     driver.quit()
 
 
+def wait_for_text(browser, text, timeout=10):
+    """A click returns before the server answers, so wait for the page to show `text`."""
+    WebDriverWait(browser, timeout).until(
+        lambda driver: text in driver.page_source,
+        message=f"'{text}' never appeared on the page",
+    )
+
+
 def add_course(browser, base, name, code):
     browser.get(f"{base}/courses")
     browser.find_element(By.NAME, "course_name").send_keys(name)
     browser.find_element(By.NAME, "course_code").send_keys(code)
     browser.find_element(By.CSS_SELECTOR, "form[method=post] .btn-primary").click()
+    wait_for_text(browser, "Course added successfully")
 
 
 def test_add_course_appears_in_list(live_server, browser):
     add_course(browser, live_server, "Data Communication", "CSE3203")
 
     assert "Data Communication" in browser.page_source
-    assert "Course added successfully" in browser.page_source
 
 
 def test_add_task_then_complete_updates_progress(live_server, browser):
@@ -58,10 +67,11 @@ def test_add_task_then_complete_updates_progress(live_server, browser):
     browser.get(f"{live_server}/tasks")
     browser.find_element(By.NAME, "title").send_keys("Finish lab report")
     browser.find_element(By.CSS_SELECTOR, "form[method=post] .btn-primary").click()
+    wait_for_text(browser, "Task added successfully")
     assert "Finish lab report" in browser.page_source
 
     browser.find_element(By.CSS_SELECTOR, "form[action*='/tasks/complete/'] button").click()
-    assert "Task marked as completed" in browser.page_source
+    wait_for_text(browser, "Task marked as completed")
 
     browser.get(f"{live_server}/progress")
     assert browser.find_element(By.ID, "overall-percent").text == "100%"
@@ -71,6 +81,7 @@ def test_activity_page_shows_observer_log(live_server, browser):
     browser.get(f"{live_server}/tasks")
     browser.find_element(By.NAME, "title").send_keys("Observe me")
     browser.find_element(By.CSS_SELECTOR, "form[method=post] .btn-primary").click()
+    wait_for_text(browser, "Task added successfully")
 
     browser.get(f"{live_server}/activity")
 
@@ -80,5 +91,6 @@ def test_activity_page_shows_observer_log(live_server, browser):
 def test_navigation_reaches_deadlines(live_server, browser):
     browser.get(live_server)
     browser.find_element(By.LINK_TEXT, "Deadlines").click()
+    wait_for_text(browser, "Deadline Management")
 
     assert "Deadline Management" in browser.page_source
