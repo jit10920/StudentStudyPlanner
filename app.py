@@ -1,7 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from database import init_db, get_db
-from services.course_service import CourseService
-from services.task_service import TaskService
+from factories.service_factory import ServiceFactory
+
+CourseService = ServiceFactory.get_service("course")
+TaskService = ServiceFactory.get_service("task")
 
 app = Flask(__name__)
 app.secret_key = "change-this-secret-key-for-your-project"
