@@ -1,38 +1,157 @@
 {% extends "base.html" %}
 {% block content %}
+
 <h1>Task Management</h1>
-<div class="card mb-4"><div class="card-body">
-<h5>Add a Task</h5>
-<form method="post" class="row g-2">
-  <div class="col-md-4"><input class="form-control" name="title" placeholder="Task title" required></div>
-  <div class="col-md-4"><input class="form-control" name="description" placeholder="Short description"></div>
-  <div class="col-md-4"><select class="form-select" name="course_id"><option value="">No course</option>{% for course in courses %}<option value="{{ course.id }}">{{ course.course_name }} ({{ course.course_code }})</option>{% endfor %}</select></div>
-  <div class="col-md-4"><label class="form-label">Deadline</label><input class="form-control" type="date" name="deadline"></div>
-  <div class="col-md-4"><label class="form-label">Priority</label><select class="form-select" name="priority"><option>Low</option><option selected>Medium</option><option>High</option></select></div>
-  <div class="col-md-4 d-flex align-items-end"><button class="btn btn-primary w-100">Add Task</button></div>
-</form>
-</div></div>
-<div class="d-flex justify-content-between align-items-center mb-3">
-<h4>Tasks</h4>
-<form method="get"><select class="form-select" name="status" onchange="this.form.submit()">
-<option value="all" {% if filter_status == 'all' %}selected{% endif %}>All</option>
-<option value="pending" {% if filter_status == 'pending' %}selected{% endif %}>Pending</option>
-<option value="completed" {% if filter_status == 'completed' %}selected{% endif %}>Completed</option>
-</select></form>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5>Add a Task</h5>
+
+        <form method="post" class="row g-2">
+            <div class="col-md-4">
+                <input class="form-control" name="title" placeholder="Task title" required>
+            </div>
+
+            <div class="col-md-4">
+                <input class="form-control" name="description" placeholder="Short description">
+            </div>
+
+            <div class="col-md-4">
+                <select class="form-select" name="course_id">
+                    <option value="">No course</option>
+                    {% for course in courses %}
+                    <option value="{{ course.id }}">
+                        {{ course.course_name }} ({{ course.course_code }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Deadline</label>
+                <input class="form-control" type="date" name="deadline">
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Priority</label>
+                <select class="form-select" name="priority">
+                    <option>Low</option>
+                    <option selected>Medium</option>
+                    <option>High</option>
+                </select>
+            </div>
+
+            <div class="col-md-4 d-flex align-items-end">
+                <button class="btn btn-primary w-100">Add Task</button>
+            </div>
+        </form>
+    </div>
 </div>
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+
+    <h4>Tasks</h4>
+
+    <form method="get" class="d-flex gap-2">
+
+        <select class="form-select" name="status" onchange="this.form.submit()">
+            <option value="all" {% if filter_status == 'all' %}selected{% endif %}>
+                All
+            </option>
+
+            <option value="pending" {% if filter_status == 'pending' %}selected{% endif %}>
+                Pending
+            </option>
+
+            <option value="completed" {% if filter_status == 'completed' %}selected{% endif %}>
+                Completed
+            </option>
+        </select>
+
+        <select class="form-select" name="sort" onchange="this.form.submit()">
+            <option value="default" {% if sort_by == 'default' %}selected{% endif %}>
+                Default Order
+            </option>
+
+            <option value="deadline" {% if sort_by == 'deadline' %}selected{% endif %}>
+                Sort by Deadline
+            </option>
+
+            <option value="priority" {% if sort_by == 'priority' %}selected{% endif %}>
+                Sort by Priority
+            </option>
+        </select>
+
+    </form>
+</div>
+
 {% if tasks %}
-<div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th>Task</th><th>Course</th><th>Deadline</th><th>Priority</th><th>Status</th><th>Actions</th></tr></thead><tbody>
-{% for task in tasks %}
-<tr>
-<td><strong>{{ task.title }}</strong><br><small class="text-muted">{{ task.description }}</small></td>
-<td>{{ task.course_name or '—' }}</td><td>{{ task.deadline or '—' }}</td><td>{{ task.priority }}</td>
-<td><span class="badge {% if task.status == 'completed' %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ task.status }}</span></td>
-<td class="d-flex gap-1">
-{% if task.status != 'completed' %}<form method="post" action="/tasks/complete/{{ task.id }}"><button class="btn btn-sm btn-success">Done</button></form>{% endif %}
-<form method="post" action="/tasks/delete/{{ task.id }}" onsubmit="return confirm('Delete this task?')"><button class="btn btn-sm btn-outline-danger">Delete</button></form>
-</td>
-</tr>
-{% endfor %}
-</tbody></table></div>
-{% else %}<p class="text-muted">No tasks found.</p>{% endif %}
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+
+        <thead>
+            <tr>
+                <th>Task</th>
+                <th>Course</th>
+                <th>Deadline</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for task in tasks %}
+            <tr>
+
+                <td>
+                    <strong>{{ task.title }}</strong>
+                    <br>
+                    <small class="text-muted">{{ task.description }}</small>
+                </td>
+
+                <td>{{ task.course_name or '—' }}</td>
+
+                <td>{{ task.deadline or '—' }}</td>
+
+                <td>{{ task.priority }}</td>
+
+                <td>
+                    <span class="badge {% if task.status == 'completed' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                        {{ task.status }}
+                    </span>
+                </td>
+
+                <td class="d-flex gap-1">
+
+                    {% if task.status != 'completed' %}
+                    <form method="post" action="/tasks/complete/{{ task.id }}">
+                        <button class="btn btn-sm btn-success">Done</button>
+                    </form>
+                    {% endif %}
+
+                    <form method="post"
+                          action="/tasks/delete/{{ task.id }}"
+                          onsubmit="return confirm('Delete this task?')">
+                        <button class="btn btn-sm btn-outline-danger">
+                            Delete
+                        </button>
+                    </form>
+
+                </td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+
+    </table>
+</div>
+
+{% else %}
+
+<p class="text-muted">No tasks found.</p>
+
+{% endif %}
+
 {% endblock %}

@@ -1,10 +1,41 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
-from database import init_db, get_db
-from services.course_service import CourseService
-from services.task_service import TaskService
+
+from flask import (
+    Flask, render_template, request, redirect,
+    url_for, flash, g, has_app_context
+)
+
+from database import init_db, get_db as create_db
+from factories.service_factory import ServiceFactory
+
+from strategies.deadline_strategy import DeadlineStrategy
+from strategies.priority_strategy import PriorityStrategy
+from strategies.default_strategy import DefaultStrategy
+
+
+CourseService = ServiceFactory.get_service("course")
+TaskService = ServiceFactory.get_service("task")
 
 app = Flask(__name__)
 app.secret_key = "change-this-secret-key-for-your-project"
+
+
+def get_db():
+    if not has_app_context():
+        return create_db()
+
+    if "db" not in g:
+        g.db = create_db()
+
+    return g.db
+
+
+@app.teardown_appcontext
+def close_db(exception=None):
+    db = g.pop("db", None)
+
+    if db is not None:
+        db.close()
+
 
 init_db()
 
@@ -12,6 +43,7 @@ init_db()
 @app.route("/")
 def dashboard():
     db = get_db()
+
     stats = TaskService.stats(db)
     upcoming = TaskService.list_tasks(db, status="pending")
     courses = CourseService.list_courses(db)
@@ -58,8 +90,12 @@ def courses():
 
 @app.route("/courses/delete/<int:course_id>", methods=["POST"])
 def delete_course(course_id):
-    CourseService.delete_course(get_db(), course_id)
+    db = get_db()
+
+    CourseService.delete_course(db, course_id)
+
     flash("Course deleted.", "info")
+
     return redirect(url_for("courses"))
 
 
@@ -101,6 +137,7 @@ def tasks():
         )
 
         flash("Task added successfully.", "success")
+
         return redirect(url_for("tasks"))
 
     filter_status = request.args.get("status", "all")
@@ -108,11 +145,26 @@ def tasks():
     if filter_status not in ("all", "pending", "completed"):
         filter_status = "all"
 
+    sort_by = request.args.get("sort", "default")
+
+    strategies = {
+        "deadline": DeadlineStrategy(),
+        "priority": PriorityStrategy(),
+        "default": DefaultStrategy()
+    }
+
+    if sort_by not in strategies:
+        sort_by = "default"
+
+    task_list = TaskService.list_tasks(db, status=filter_status)
+    task_list = strategies[sort_by].sort(task_list)
+
     return render_template(
         "tasks.html",
-        tasks=TaskService.list_tasks(db, status=filter_status),
+        tasks=task_list,
         courses=CourseService.list_courses(db),
-        filter_status=filter_status
+        filter_status=filter_status,
+        sort_by=sort_by
     )
 
 
@@ -127,8 +179,10 @@ def complete_task(task_id):
 
     if task is None:
         flash("Task not found.", "danger")
+
     elif task["status"] == "completed":
         flash("Task is already completed.", "info")
+
     else:
         TaskService.complete_task(db, task_id)
         flash("Task marked as completed.", "success")
@@ -147,6 +201,7 @@ def delete_task(task_id):
 
     if task is None:
         flash("Task not found.", "danger")
+
     else:
         TaskService.delete_task(db, task_id)
         flash("Task deleted.", "info")
