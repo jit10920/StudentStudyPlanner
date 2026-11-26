@@ -1,7 +1,9 @@
+
 import sqlite3
 from pathlib import Path
 
 DB_PATH = Path(__file__).parent / "study_planner.db"
+
 
 def get_db():
     connection = sqlite3.connect(DB_PATH)
@@ -9,8 +11,11 @@ def get_db():
     connection.execute("PRAGMA foreign_keys = ON")
     return connection
 
+
 def init_db():
-    with get_db() as db:
+    db = get_db()
+
+    try:
         db.execute("""
             CREATE TABLE IF NOT EXISTS courses (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -19,6 +24,7 @@ def init_db():
                 semester TEXT DEFAULT ''
             )
         """)
+
         db.execute("""
             CREATE TABLE IF NOT EXISTS tasks (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,3 +37,8 @@ def init_db():
                 FOREIGN KEY(course_id) REFERENCES courses(id) ON DELETE SET NULL
             )
         """)
+
+        db.commit()
+
+    finally:
+        db.close()
