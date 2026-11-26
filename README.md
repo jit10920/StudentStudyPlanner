@@ -41,3 +41,6 @@ CI (GitHub Actions) runs both on every push and pull request.
 
 ## Git workflow for the final increment
 Branch names: `feature/deadline-progress`, `feature/observer-activity-log`, `feature/openapi-docs`, `feature/selenium-ci`. Each is merged into `main` by a pull request. One pull request should be reviewed with requested changes (revised before merge) to show the review process.
+
+## Running the tests
+Run the unit tests with coverage: `pytest --ignore=tests/e2e --cov`
