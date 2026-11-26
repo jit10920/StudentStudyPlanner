@@ -9,6 +9,12 @@
   </div></div></div>
   {% endfor %}
 </div>
+<div class="card mb-4"><div class="card-body">
+  <div class="d-flex justify-content-between"><strong>Overall progress</strong><span>{{ overall_percent }}%</span></div>
+  <div class="progress mt-2" role="progressbar" aria-valuenow="{{ overall_percent }}" aria-valuemin="0" aria-valuemax="100">
+    <div class="progress-bar" style="width: {{ overall_percent }}%"></div>
+  </div>
+</div></div>
 <div class="row g-3">
   <div class="col-md-6"><div class="card"><div class="card-body">
     <h4>Upcoming Tasks</h4>

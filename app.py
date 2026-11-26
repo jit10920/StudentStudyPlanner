@@ -11,9 +11,17 @@ from strategies.deadline_strategy import DeadlineStrategy
 from strategies.priority_strategy import PriorityStrategy
 from strategies.default_strategy import DefaultStrategy
 
+from events.observers import (
+    TaskEventPublisher, ActivityLogObserver,
+    NotificationObserver, LogNotifier
+)
+from api import create_api_blueprint
+
 
 CourseService = ServiceFactory.get_service("course")
 TaskService = ServiceFactory.get_service("task")
+ProgressService = ServiceFactory.get_service("progress")
+DeadlineService = ServiceFactory.get_service("deadline")
 
 app = Flask(__name__)
 app.secret_key = "change-this-secret-key-for-your-project"
@@ -37,6 +45,17 @@ def close_db(exception=None):
         db.close()
 
 
+event_publisher = TaskEventPublisher()
+event_publisher.subscribe(ActivityLogObserver(get_db))
+event_publisher.subscribe(NotificationObserver(LogNotifier()))
+
+app.register_blueprint(
+    create_api_blueprint(
+        get_db, CourseService, TaskService, ProgressService,
+        lambda event, data: event_publisher.publish(event, data)
+    )
+)
+
 init_db()
 
 
@@ -51,6 +70,7 @@ def dashboard():
     return render_template(
         "index.html",
         stats=stats,
+        overall_percent=ProgressService.overall_percent(db),
         tasks=upcoming[:5],
         courses=courses
     )
@@ -135,6 +155,7 @@ def tasks():
         TaskService.add_task(
             db, title, description, course_id, deadline, priority
         )
+        event_publisher.publish("task_added", {"title": title})
 
         flash("Task added successfully.", "success")
 
@@ -173,7 +194,7 @@ def complete_task(task_id):
     db = get_db()
 
     task = db.execute(
-        "SELECT id, status FROM tasks WHERE id = ?",
+        "SELECT id, title, status FROM tasks WHERE id = ?",
         (task_id,)
     ).fetchone()
 
@@ -185,6 +206,7 @@ def complete_task(task_id):
 
     else:
         TaskService.complete_task(db, task_id)
+        event_publisher.publish("task_completed", {"id": task_id, "title": task["title"]})
         flash("Task marked as completed.", "success")
 
     return redirect(url_for("tasks"))
@@ -195,7 +217,7 @@ def delete_task(task_id):
     db = get_db()
 
     task = db.execute(
-        "SELECT id FROM tasks WHERE id = ?",
+        "SELECT id, title FROM tasks WHERE id = ?",
         (task_id,)
     ).fetchone()
 
@@ -204,9 +226,42 @@ def delete_task(task_id):
 
     else:
         TaskService.delete_task(db, task_id)
+        event_publisher.publish("task_deleted", {"id": task_id, "title": task["title"]})
         flash("Task deleted.", "info")
 
     return redirect(url_for("tasks"))
+
+
+@app.route("/progress")
+def progress():
+    db = get_db()
+
+    return render_template(
+        "progress.html",
+        courses=ProgressService.by_course(db),
+        overall_percent=ProgressService.overall_percent(db)
+    )
+
+
+@app.route("/deadlines")
+def deadlines():
+    db = get_db()
+
+    return render_template(
+        "deadlines.html",
+        groups=DeadlineService.grouped(db)
+    )
+
+
+@app.route("/activity")
+def activity():
+    db = get_db()
+
+    entries = db.execute(
+        "SELECT event, message, created_at FROM activity_log ORDER BY id DESC LIMIT 50"
+    ).fetchall()
+
+    return render_template("activity.html", entries=entries)
 
 
 if __name__ == "__main__":
