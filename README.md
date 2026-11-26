@@ -9,7 +9,7 @@ A simple Flask + SQLite project for the CSE 3206 Software Engineering Sessional 
 - Progress Tracking (`/progress`)
 - Activity Log (`/activity`, filled by the Observer pattern)
 - Dashboard
-- JSON API with Swagger docs (`/api/docs`)
+- Docker support (`Dockerfile`, `docker-compose.yml`)
 
 ## Design patterns
 Factory (`factories/`), Strategy (`strategies/`), Observer (`events/`). See `docs/REPORT.md` for the UML diagram and rejected alternatives.
@@ -24,6 +24,19 @@ python app.py
 ```
 
 Open http://127.0.0.1:5000
+
+## Run with Docker
+
+```powershell
+docker compose up --build
+```
+
+Open http://127.0.0.1:5000. Data is kept in a Docker volume, so it survives restarts. Run the unit tests inside the container:
+
+```powershell
+docker build -t study-planner .
+docker run --rm study-planner pytest --ignore=tests/e2e -q
+```
 
 ## Tests
 
@@ -40,4 +53,4 @@ CI (GitHub Actions) runs both on every push and pull request.
 
 
 ## Git workflow for the final increment
-Branch names: `feature/deadline-progress`, `feature/observer-activity-log`, `feature/openapi-docs`, `feature/selenium-ci`. Each is merged into `main` by a pull request. One pull request should be reviewed with requested changes (revised before merge) to show the review process.
+Branch names: `feature/deadline-progress`, `feature/observer-activity-log`, `feature/docker`, `feature/selenium-ci`. Each is merged into `main` by a pull request. One pull request should be reviewed with requested changes (revised before merge) to show the review process.
