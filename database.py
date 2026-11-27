@@ -1,8 +1,10 @@
 
+import os
 import sqlite3
 from pathlib import Path
 
-DB_PATH = Path(__file__).parent / "study_planner.db"
+# STUDY_PLANNER_DB lets a container keep the database on a mounted volume.
+DB_PATH = Path(os.environ.get("STUDY_PLANNER_DB", Path(__file__).parent / "study_planner.db"))
 
 
 def get_db():

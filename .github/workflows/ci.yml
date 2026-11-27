@@ -24,3 +24,34 @@ jobs:
 
       - name: Selenium end-to-end tests (headless Chrome)
         run: pytest tests/e2e -v
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t study-planner .
+
+      - name: Run unit tests inside the container
+        run: docker run --rm study-planner pytest --ignore=tests/e2e -q
+
+      - name: Start container and check the app answers
+        run: |
+          docker run -d --name planner -p 5000:5000 study-planner
+          for i in $(seq 1 20); do
+            curl -fs http://127.0.0.1:5000/ > /dev/null && exit 0
+            sleep 1
+          done
+          docker logs planner
+          exit 1
+
+      - name: Data survives a container restart
+        run: |
+          curl -fs -X POST -d "course_name=Docker Test&course_code=DKR1" http://127.0.0.1:5000/courses -o /dev/null
+          docker restart planner
+          for i in $(seq 1 20); do
+            curl -fs http://127.0.0.1:5000/courses > /dev/null && break
+            sleep 1
+          done
+          curl -fs http://127.0.0.1:5000/courses | grep -q "Docker Test"

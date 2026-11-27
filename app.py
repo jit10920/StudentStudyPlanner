@@ -15,7 +15,6 @@ from events.observers import (
     TaskEventPublisher, ActivityLogObserver,
     NotificationObserver, LogNotifier
 )
-from api import create_api_blueprint
 
 
 CourseService = ServiceFactory.get_service("course")
@@ -48,13 +47,6 @@ def close_db(exception=None):
 event_publisher = TaskEventPublisher()
 event_publisher.subscribe(ActivityLogObserver(get_db))
 event_publisher.subscribe(NotificationObserver(LogNotifier()))
-
-app.register_blueprint(
-    create_api_blueprint(
-        get_db, CourseService, TaskService, ProgressService,
-        lambda event, data: event_publisher.publish(event, data)
-    )
-)
 
 init_db()
 
