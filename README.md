@@ -27,9 +27,22 @@ Open http://127.0.0.1:5000
 
 ## Tests
 
+Install the required packages first:
+
 ```powershell
-pytest --ignore=tests/e2e --cov        # unit tests + coverage
-pytest tests/e2e                        # Selenium tests (needs Chrome)
+pip install -r requirements.txt
+```
+
+Run the unit tests with coverage:
+
+```powershell
+pytest --ignore=tests/e2e --cov
+```
+
+Run the browser tests (needs Chrome):
+
+```powershell
+pytest tests/e2e
 ```
 
 CI (GitHub Actions) runs both on every push and pull request.
@@ -38,11 +51,7 @@ CI (GitHub Actions) runs both on every push and pull request.
 - `docs/REPORT.md` – requirements, process model, patterns, UML, tests, new tool
 - `docs/REFLECTION.md` – learning log and reflection essay
 
-
 ## Git workflow for the final increment
 Branch names: `feature/deadline-progress`, `feature/observer-activity-log`, `feature/openapi-docs`, `feature/selenium-ci`. Each is merged into `main` by a pull request. One pull request should be reviewed with requested changes (revised before merge) to show the review process.
+notepad README.md
 
-## Running the tests
-Run the unit tests with coverage: `pytest --ignore=tests/e2e --cov`
-Run the browser tests (needs Chrome): `pytest tests/e2e`
-Install the packages first: `pip install -r requirements.txt`
